@@ -2,7 +2,9 @@ package com.erumpay.notification;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 
+@EnableFeignClients(basePackages = "com.erumpay.notification.client")
 @SpringBootApplication
 public class NotificationApplication {
 
