@@ -16,10 +16,32 @@ spring:
       ddl-auto: update
     show-sql: true
 
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: notification-service
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    listener:
+      ack-mode: record
+
 notification:
   clients:
     auth-service:
       url: http://localhost:8081
+  kafka:
+    topics:
+      auth: auth.event
+      card: card.event
+      dutch: dutch.event
+      payment: payment.event
+      remote-command: remote.command
+      remote-event: remote.event
 
 resilience4j:
   circuitbreaker:
