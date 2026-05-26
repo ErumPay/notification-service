@@ -83,6 +83,25 @@ public class Notification {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    public static Notification inApp(
+            String eventId,
+            Long userId,
+            NotificationType type,
+            String title,
+            String content,
+            Long paymentId
+    ) {
+        return Notification.builder()
+                .eventId(eventId)
+                .userId(userId)
+                .type(type)
+                .title(title)
+                .content(content)
+                .paymentId(paymentId)
+                .channel(NotificationChannel.IN_APP)
+                .build();
+    }
+
     public void markAsRead(LocalDateTime readAt) {
         if (Boolean.TRUE.equals(this.isRead)) {
             return;

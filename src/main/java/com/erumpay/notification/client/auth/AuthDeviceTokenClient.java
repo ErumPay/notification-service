@@ -21,6 +21,6 @@ public interface AuthDeviceTokenClient {
     @GetMapping(value = "/api/v1/internal/users/{userId}/device-tokens")
     AuthActiveDeviceTokenResponse getActiveDeviceTokens(@PathVariable("userId") Long userId);
 
-    @PatchMapping(value = "/api/v1/internal/device-tokens/inactive", consumes = APPLICATION_JSON_VALUE)
+    @PatchMapping(value = "/api/internal/device-tokens/deactivate", consumes = APPLICATION_JSON_VALUE)
     void deactivateInvalidToken(@RequestBody AuthDeviceTokenDeactivateRequest request);
 }

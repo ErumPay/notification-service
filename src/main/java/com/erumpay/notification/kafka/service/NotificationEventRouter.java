@@ -1,12 +1,17 @@
 package com.erumpay.notification.kafka.service;
 
 import com.erumpay.notification.dto.NotificationEventMessage;
+import com.erumpay.notification.service.NotificationInAppEventService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class NotificationEventRouter {
+
+    private final NotificationInAppEventService notificationInAppEventService;
 
     public void route(NotificationEventMessage event) {
         switch (event.eventType()) {
@@ -19,6 +24,7 @@ public class NotificationEventRouter {
     }
 
     private void routeNotificationEvent(NotificationEventMessage event) {
+        notificationInAppEventService.createInAppNotification(event);
         log.debug(
                 "Notification Kafka event routed for notification handling. eventId={}, eventType={}, userId={}",
                 event.eventId(),

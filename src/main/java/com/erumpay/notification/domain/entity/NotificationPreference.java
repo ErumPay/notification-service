@@ -70,6 +70,12 @@ public class NotificationPreference {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    public static NotificationPreference defaultFor(Long userId) {
+        return NotificationPreference.builder()
+                .userId(userId)
+                .build();
+    }
+
     public void update(
             Boolean pushEnabled,
             Boolean cardEnabled,
