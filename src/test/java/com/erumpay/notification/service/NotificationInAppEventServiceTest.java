@@ -5,12 +5,14 @@ import com.erumpay.notification.domain.entity.NotificationPreference;
 import com.erumpay.notification.domain.enums.NotificationChannel;
 import com.erumpay.notification.domain.enums.NotificationType;
 import com.erumpay.notification.dto.NotificationEventMessage;
+import com.erumpay.notification.event.NotificationPushRequestedEvent;
 import com.erumpay.notification.kafka.exception.InvalidNotificationEventException;
 import com.erumpay.notification.repository.NotificationRepository;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.context.ApplicationEventPublisher;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -25,12 +27,17 @@ class NotificationInAppEventServiceTest {
 
     private final NotificationRepository notificationRepository = mock(NotificationRepository.class);
     private final NotificationPreferenceService notificationPreferenceService = mock(NotificationPreferenceService.class);
+    private final ApplicationEventPublisher applicationEventPublisher = mock(ApplicationEventPublisher.class);
     private final NotificationInAppEventService notificationInAppEventService =
-            new NotificationInAppEventService(notificationRepository, notificationPreferenceService);
+            new NotificationInAppEventService(
+                    notificationRepository,
+                    notificationPreferenceService,
+                    applicationEventPublisher
+            );
 
     @BeforeEach
     void setUp() {
-        reset(notificationRepository, notificationPreferenceService);
+        reset(notificationRepository, notificationPreferenceService, applicationEventPublisher);
     }
 
     @Test
@@ -39,6 +46,8 @@ class NotificationInAppEventServiceTest {
         when(notificationRepository.existsByEventId("evt_in_app_001")).thenReturn(false);
         when(notificationPreferenceService.getOrCreateDefault(101L))
                 .thenReturn(NotificationPreference.defaultFor(101L));
+        when(notificationRepository.save(org.mockito.ArgumentMatchers.any(Notification.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         notificationInAppEventService.createInAppNotification(event);
 
@@ -52,6 +61,7 @@ class NotificationInAppEventServiceTest {
         assertThat(saved.getPaymentId()).isEqualTo(90001L);
         assertThat(saved.getChannel()).isEqualTo(NotificationChannel.IN_APP);
         assertThat(saved.getIsRead()).isFalse();
+        verify(applicationEventPublisher).publishEvent(org.mockito.ArgumentMatchers.any(NotificationPushRequestedEvent.class));
     }
 
     @Test
@@ -63,6 +73,7 @@ class NotificationInAppEventServiceTest {
 
         verifyNoInteractions(notificationPreferenceService);
         verify(notificationRepository, never()).save(org.mockito.ArgumentMatchers.any());
+        verify(applicationEventPublisher, never()).publishEvent(org.mockito.ArgumentMatchers.any());
     }
 
     @Test
@@ -78,6 +89,7 @@ class NotificationInAppEventServiceTest {
         notificationInAppEventService.createInAppNotification(event);
 
         verify(notificationRepository, never()).save(org.mockito.ArgumentMatchers.any());
+        verify(applicationEventPublisher, never()).publishEvent(org.mockito.ArgumentMatchers.any());
     }
 
     @Test
