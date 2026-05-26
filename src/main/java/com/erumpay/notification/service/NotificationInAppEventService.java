@@ -4,10 +4,12 @@ import com.erumpay.notification.domain.entity.Notification;
 import com.erumpay.notification.domain.entity.NotificationPreference;
 import com.erumpay.notification.domain.enums.NotificationType;
 import com.erumpay.notification.dto.NotificationEventMessage;
+import com.erumpay.notification.event.NotificationPushRequestedEvent;
 import com.erumpay.notification.kafka.exception.InvalidNotificationEventException;
 import com.erumpay.notification.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -22,6 +24,7 @@ public class NotificationInAppEventService {
 
     private final NotificationRepository notificationRepository;
     private final NotificationPreferenceService notificationPreferenceService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Transactional
     public void createInAppNotification(NotificationEventMessage event) {
@@ -43,13 +46,23 @@ public class NotificationInAppEventService {
             return;
         }
 
-        notificationRepository.save(Notification.inApp(
+        Notification notification = notificationRepository.save(Notification.inApp(
                 event.eventId(),
                 event.userId(),
                 event.eventType(),
                 event.title(),
                 event.content(),
                 event.paymentId()
+        ));
+        applicationEventPublisher.publishEvent(new NotificationPushRequestedEvent(
+                notification.getNotificationId(),
+                notification.getUserId(),
+                notification.getType(),
+                notification.getTitle(),
+                notification.getContent(),
+                notification.getPaymentId(),
+                preference.getPushEnabled(),
+                preference.getNightBlocked()
         ));
     }
 
