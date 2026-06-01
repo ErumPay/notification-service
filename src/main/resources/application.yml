@@ -6,9 +6,9 @@ spring:
     name: notification
 
   datasource:
-    url: jdbc:mysql://localhost:3308/notification_db
-    username: root
-    password: 1234
+    url: ${DB_URL:jdbc:mysql://localhost:3308/notification_db}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:1234}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:

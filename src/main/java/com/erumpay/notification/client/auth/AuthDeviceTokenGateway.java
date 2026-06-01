@@ -31,15 +31,15 @@ public class AuthDeviceTokenGateway {
 
     private AuthActiveDeviceTokenResponse getActiveDeviceTokensFallback(Long userId, Throwable cause) {
         throw new NotificationException(
-                ErrorCode.EXTERNAL_SERVICE_UNAVAILABLE,
-                "Failed to retrieve active device tokens from auth-service."
+                ErrorCode.AUTH_SERVICE_UNAVAILABLE,
+                "auth-service에서 활성 디바이스 토큰을 조회하지 못했습니다."
         );
     }
 
     private void deactivateInvalidTokenFallback(AuthDeviceTokenDeactivateRequest request, Throwable cause) {
         throw new NotificationException(
-                ErrorCode.EXTERNAL_SERVICE_UNAVAILABLE,
-                "Failed to deactivate invalid device token through auth-service."
+                ErrorCode.AUTH_SERVICE_UNAVAILABLE,
+                "auth-service에 유효하지 않은 디바이스 토큰 비활성화를 요청하지 못했습니다."
         );
     }
 }
