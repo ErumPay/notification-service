@@ -45,10 +45,10 @@ public class NotificationQueryService {
 
     private Pageable createPageable(int page, int size) {
         if (page < 0) {
-            throw new NotificationException(ErrorCode.INVALID_REQUEST, "page must be greater than or equal to 0.");
+            throw new NotificationException(ErrorCode.INVALID_REQUEST, "page는 0 이상이어야 합니다.");
         }
         if (size < 1 || size > MAX_PAGE_SIZE) {
-            throw new NotificationException(ErrorCode.INVALID_REQUEST, "size must be between 1 and 100.");
+            throw new NotificationException(ErrorCode.INVALID_REQUEST, "size는 1 이상 100 이하이어야 합니다.");
         }
         return PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
     }
