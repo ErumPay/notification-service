@@ -10,6 +10,7 @@ public record NotificationEventMessage(
         String title,
         String content,
         Long paymentId,
-        LocalDateTime occurredAt
+        LocalDateTime occurredAt,
+        String correlationId
 ) {
 }

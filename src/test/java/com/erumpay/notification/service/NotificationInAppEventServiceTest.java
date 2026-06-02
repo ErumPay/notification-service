@@ -101,7 +101,8 @@ class NotificationInAppEventServiceTest {
                 null,
                 "Card registered.",
                 null,
-                LocalDateTime.of(2026, 5, 26, 10, 0, 5)
+                LocalDateTime.of(2026, 5, 26, 10, 0, 5),
+                "corr_invalid_title_001"
         );
         when(notificationRepository.existsByEventId("evt_invalid_title_001")).thenReturn(false);
 
@@ -119,7 +120,8 @@ class NotificationInAppEventServiceTest {
                 "Payment completed.",
                 "The payment was completed.",
                 null,
-                LocalDateTime.of(2026, 5, 26, 10, 0, 5)
+                LocalDateTime.of(2026, 5, 26, 10, 0, 5),
+                "corr_invalid_payment_001"
         );
         when(notificationRepository.existsByEventId("evt_invalid_payment_001")).thenReturn(false);
 
@@ -136,7 +138,8 @@ class NotificationInAppEventServiceTest {
                 "Payment completed.",
                 "The payment was completed.",
                 90001L,
-                LocalDateTime.of(2026, 5, 26, 10, 0, 5)
+                LocalDateTime.of(2026, 5, 26, 10, 0, 5),
+                "corr_" + eventId
         );
     }
 }

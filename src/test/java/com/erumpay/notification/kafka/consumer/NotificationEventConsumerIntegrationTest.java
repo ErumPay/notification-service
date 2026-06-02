@@ -98,12 +98,13 @@ class NotificationEventConsumerIntegrationTest {
                   "title": "Payment completed.",
                   "content": "The payment was completed.",
                   "paymentId": 90001,
-                  "occurredAt": "2026-05-26T10:00:05"
+                  "occurredAt": "2026-05-26T10:00:05",
+                  "correlationId": "pay_consumer_001"
                 }
                 """);
 
         verify(notificationEventRouter, timeout(5_000))
-                .route(argThat(eventWithId("evt_consumer_001")));
+                .route(argThat(eventWithIdAndCorrelationId("evt_consumer_001", "pay_consumer_001")));
     }
 
     @Test
@@ -142,8 +143,13 @@ class NotificationEventConsumerIntegrationTest {
         ).createConsumer();
     }
 
-    private ArgumentMatcher<NotificationEventMessage> eventWithId(String eventId) {
-        return event -> event != null && eventId.equals(event.eventId());
+    private ArgumentMatcher<NotificationEventMessage> eventWithIdAndCorrelationId(
+            String eventId,
+            String correlationId
+    ) {
+        return event -> event != null
+                && eventId.equals(event.eventId())
+                && correlationId.equals(event.correlationId());
     }
 
     @SpringBootConfiguration
