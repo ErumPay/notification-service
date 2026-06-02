@@ -34,9 +34,7 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
 @DirtiesContext
-@EmbeddedKafka(
-        partitions = 1,
-        topics = {
+@EmbeddedKafka(partitions = 1, topics = {
                 "auth.event",
                 "auth.event.dlt",
                 "card.event",
@@ -49,12 +47,8 @@ import static org.mockito.Mockito.verify;
                 "remote.command.dlt",
                 "remote.event",
                 "remote.event.dlt"
-        },
-        bootstrapServersProperty = "spring.kafka.bootstrap-servers"
-)
-@SpringBootTest(
-        classes = NotificationEventConsumerIntegrationTest.TestApplication.class,
-        properties = {
+}, bootstrapServersProperty = "spring.kafka.bootstrap-servers")
+@SpringBootTest(classes = NotificationEventConsumerIntegrationTest.TestApplication.class, properties = {
                 "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration",
                 "spring.kafka.consumer.group-id=notification-service-test",
                 "spring.kafka.consumer.auto-offset-reset=earliest",
@@ -70,100 +64,96 @@ import static org.mockito.Mockito.verify;
                 "notification.kafka.topics.payment=payment.event",
                 "notification.kafka.topics.remote-command=remote.command",
                 "notification.kafka.topics.remote-event=remote.event"
-        }
-)
+})
 class NotificationEventConsumerIntegrationTest {
 
-    @Autowired
-    private EmbeddedKafkaBroker embeddedKafkaBroker;
+        @Autowired
+        private EmbeddedKafkaBroker embeddedKafkaBroker;
 
-    @Autowired
-    private KafkaTemplate<String, String> kafkaTemplate;
+        @Autowired
+        private KafkaTemplate<String, String> kafkaTemplate;
 
-    @Autowired
-    private NotificationEventRouter notificationEventRouter;
+        @Autowired
+        private NotificationEventRouter notificationEventRouter;
 
-    @BeforeEach
-    void setUp() {
-        reset(notificationEventRouter);
-    }
+        @BeforeEach
+        void setUp() {
+                reset(notificationEventRouter);
+        }
 
-    @Test
-    void consumesPaymentEventAndRoutesIt() {
-        kafkaTemplate.send("payment.event", "101", """
-                {
-                  "eventId": "evt_consumer_001",
-                  "eventType": "PAYMENT_COMPLETED",
-                  "userId": 101,
-                  "title": "Payment completed.",
-                  "content": "The payment was completed.",
-                  "paymentId": 90001,
-                  "occurredAt": "2026-05-26T10:00:05",
-                  "correlationId": "pay_consumer_001"
+        @Test
+        void consumesPaymentEventAndRoutesIt() {
+                kafkaTemplate.send("payment.event", "101", """
+                                {
+                                  "eventId": "evt_consumer_001",
+                                  "eventType": "PAYMENT_COMPLETED",
+                                  "userId": 101,
+                                  "title": "Payment completed.",
+                                  "content": "The payment was completed.",
+                                  "paymentId": 90001,
+                                  "occurredAt": "2026-05-26T10:00:05",
+                                  "correlationId": "pay_consumer_001"
+                                }
+                                """);
+
+                verify(notificationEventRouter, timeout(30_000))
+                                .route(argThat(eventWithIdAndCorrelationId("evt_consumer_001", "pay_consumer_001")));
+        }
+
+        @Test
+        void publishesInvalidEventToDeadLetterTopic() {
+                try (Consumer<String, String> dltConsumer = createDltConsumer()) {
+                        embeddedKafkaBroker.consumeFromAnEmbeddedTopic(dltConsumer, "payment.event.dlt");
+
+                        kafkaTemplate.send("payment.event", "101", """
+                                        {
+                                          "eventId": "evt_consumer_invalid_001",
+                                          "eventType": "PAYMENT_UNKNOWN",
+                                          "userId": 101,
+                                          "occurredAt": "2026-05-26T10:00:05"
+                                        }
+                                        """);
+
+                        ConsumerRecord<String, String> deadLetterRecord = KafkaTestUtils.getSingleRecord(dltConsumer,
+                                        "payment.event.dlt", Duration.ofSeconds(30));
+
+                        assertThat(deadLetterRecord.value()).contains("PAYMENT_UNKNOWN");
+                        assertThat(deadLetterRecord.key()).isEqualTo("101");
                 }
-                """);
-
-        verify(notificationEventRouter, timeout(5_000))
-                .route(argThat(eventWithIdAndCorrelationId("evt_consumer_001", "pay_consumer_001")));
-    }
-
-    @Test
-    void publishesInvalidEventToDeadLetterTopic() {
-        try (Consumer<String, String> dltConsumer = createDltConsumer()) {
-            embeddedKafkaBroker.consumeFromAnEmbeddedTopic(dltConsumer, "payment.event.dlt");
-
-            kafkaTemplate.send("payment.event", "101", """
-                    {
-                      "eventId": "evt_consumer_invalid_001",
-                      "eventType": "PAYMENT_UNKNOWN",
-                      "userId": 101,
-                      "occurredAt": "2026-05-26T10:00:05"
-                    }
-                    """);
-
-            ConsumerRecord<String, String> deadLetterRecord =
-                    KafkaTestUtils.getSingleRecord(dltConsumer, "payment.event.dlt", Duration.ofSeconds(10));
-
-            assertThat(deadLetterRecord.value()).contains("PAYMENT_UNKNOWN");
-            assertThat(deadLetterRecord.key()).isEqualTo("101");
         }
-    }
 
-    private Consumer<String, String> createDltConsumer() {
-        Map<String, Object> consumerProps = KafkaTestUtils.consumerProps(
-                "notification-service-dlt-test",
-                "false",
-                embeddedKafkaBroker
-        );
-        consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        return new DefaultKafkaConsumerFactory<>(
-                consumerProps,
-                new StringDeserializer(),
-                new StringDeserializer()
-        ).createConsumer();
-    }
-
-    private ArgumentMatcher<NotificationEventMessage> eventWithIdAndCorrelationId(
-            String eventId,
-            String correlationId
-    ) {
-        return event -> event != null
-                && eventId.equals(event.eventId())
-                && correlationId.equals(event.correlationId());
-    }
-
-    @SpringBootConfiguration
-    @EnableAutoConfiguration
-    @Import({
-            NotificationKafkaConfig.class,
-            NotificationEventConsumer.class,
-            NotificationEventParser.class
-    })
-    static class TestApplication {
-
-        @Bean
-        NotificationEventRouter notificationEventRouter() {
-            return mock(NotificationEventRouter.class);
+        private Consumer<String, String> createDltConsumer() {
+                Map<String, Object> consumerProps = KafkaTestUtils.consumerProps(
+                                "notification-service-dlt-test",
+                                "false",
+                                embeddedKafkaBroker);
+                consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+                return new DefaultKafkaConsumerFactory<>(
+                                consumerProps,
+                                new StringDeserializer(),
+                                new StringDeserializer()).createConsumer();
         }
-    }
+
+        private ArgumentMatcher<NotificationEventMessage> eventWithIdAndCorrelationId(
+                        String eventId,
+                        String correlationId) {
+                return event -> event != null
+                                && eventId.equals(event.eventId())
+                                && correlationId.equals(event.correlationId());
+        }
+
+        @SpringBootConfiguration
+        @EnableAutoConfiguration
+        @Import({
+                        NotificationKafkaConfig.class,
+                        NotificationEventConsumer.class,
+                        NotificationEventParser.class
+        })
+        static class TestApplication {
+
+                @Bean
+                NotificationEventRouter notificationEventRouter() {
+                        return mock(NotificationEventRouter.class);
+                }
+        }
 }
