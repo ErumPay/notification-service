@@ -34,8 +34,9 @@ public class NotificationEventConsumer {
             NotificationEventMessage event = notificationEventParser.parse(record.value());
             notificationEventRouter.route(event);
             log.info(
-                    "Notification Kafka event consumed. eventId={}, eventType={}, userId={}, topic={}, partition={}, offset={}",
+                    "Notification Kafka event consumed. eventId={}, correlationId={}, eventType={}, userId={}, topic={}, partition={}, offset={}",
                     event.eventId(),
+                    event.correlationId(),
                     event.eventType(),
                     event.userId(),
                     record.topic(),
