@@ -34,7 +34,7 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
 @DirtiesContext
-@EmbeddedKafka(partitions = 1, topics = {
+@EmbeddedKafka(kraft = true, partitions = 1, topics = {
                 "auth.event",
                 "auth.event.dlt",
                 "card.event",
