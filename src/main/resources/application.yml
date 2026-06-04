@@ -1,0 +1,59 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: notification
+
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3308/notification_db}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:1234}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: notification-service
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    listener:
+      ack-mode: record
+
+notification:
+  clients:
+    auth-service:
+      url: http://localhost:8081
+  kafka:
+    topics:
+      auth: auth.event
+      card: card.event
+      dutch: dutch.event
+      payment: payment.event
+      remote-command: remote.command
+      remote-event: remote.event
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      authDeviceTokenClient:
+        sliding-window-size: 20
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+  retry:
+    instances:
+      authDeviceTokenClient:
+        max-attempts: 2
+        wait-duration: 200ms
