@@ -33,7 +33,7 @@ spring:
 notification:
   clients:
     auth-service:
-      url: http://localhost:8081
+      url: ${AUTH_BASE_URL:http://localhost:8081}
   kafka:
     topics:
       auth: auth.event
