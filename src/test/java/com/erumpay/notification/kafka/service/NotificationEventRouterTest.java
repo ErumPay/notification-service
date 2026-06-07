@@ -39,8 +39,7 @@ class NotificationEventRouterTest {
                 "Notification title",
                 "Notification content",
                 90001L,
-                LocalDateTime.of(2026, 5, 26, 10, 0, 5),
-                "corr_router_" + notificationType.name()
+                LocalDateTime.of(2026, 5, 26, 10, 0, 5)
         );
 
         assertThatCode(() -> notificationEventRouter.route(event)).doesNotThrowAnyException();
@@ -61,8 +60,7 @@ class NotificationEventRouterTest {
                 null,
                 null,
                 null,
-                LocalDateTime.of(2026, 5, 26, 10, 0, 5),
-                "corr_router_" + notificationType.name()
+                LocalDateTime.of(2026, 5, 26, 10, 0, 5)
         );
 
         assertThatCode(() -> notificationEventRouter.route(event)).doesNotThrowAnyException();

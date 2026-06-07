@@ -30,9 +30,8 @@ public class NotificationInAppEventService {
     public void createInAppNotification(NotificationEventMessage event) {
         if (notificationRepository.existsByEventId(event.eventId())) {
             log.info(
-                    "Duplicate notification event skipped. eventId={}, correlationId={}, userId={}",
+                    "Duplicate notification event skipped. eventId={}, userId={}",
                     event.eventId(),
-                    event.correlationId(),
                     event.userId()
             );
             return;
@@ -43,9 +42,8 @@ public class NotificationInAppEventService {
         NotificationPreference preference = notificationPreferenceService.getOrCreateDefault(event.userId());
         if (!isEnabled(preference, event.eventType())) {
             log.info(
-                    "Notification event skipped by user preference. eventId={}, correlationId={}, eventType={}, userId={}",
+                    "Notification event skipped by user preference. eventId={}, eventType={}, userId={}",
                     event.eventId(),
-                    event.correlationId(),
                     event.eventType(),
                     event.userId()
             );
