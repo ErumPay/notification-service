@@ -26,9 +26,8 @@ public class NotificationEventRouter {
     private void routeNotificationEvent(NotificationEventMessage event) {
         notificationInAppEventService.createInAppNotification(event);
         log.debug(
-                "Notification Kafka event routed for notification handling. eventId={}, correlationId={}, eventType={}, userId={}",
+                "Notification Kafka event routed for notification handling. eventId={}, eventType={}, userId={}",
                 event.eventId(),
-                event.correlationId(),
                 event.eventType(),
                 event.userId()
         );
@@ -36,9 +35,8 @@ public class NotificationEventRouter {
 
     private void routeUserWithdrawalEvent(NotificationEventMessage event) {
         log.debug(
-                "Notification Kafka event routed for user withdrawal handling. eventId={}, correlationId={}, userId={}",
+                "Notification Kafka event routed for user withdrawal handling. eventId={}, userId={}",
                 event.eventId(),
-                event.correlationId(),
                 event.userId()
         );
     }
