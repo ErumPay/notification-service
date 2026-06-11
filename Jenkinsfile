@@ -166,7 +166,7 @@ pipeline {
                                       echo "No infra image tag changes to commit."
                                     else
                                       git add "$INFRA_HELM_VALUES_PATH"
-                                      git commit -m "chore: update pg-payment image tag to $IMAGE_TAG"
+                                      git commit -m "chore: update notification image tag to $IMAGE_TAG"
                                       git remote set-url origin "https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/ErumPay/erumpay-infra.git"
                                       git push origin "HEAD:${INFRA_BRANCH}"
                                     fi
@@ -182,7 +182,7 @@ pipeline {
                                       echo No infra image tag changes to commit.
                                     ) else (
                                       git add "%INFRA_HELM_VALUES_PATH%"
-                                      git commit -m "chore: update pg-payment image tag to %IMAGE_TAG%"
+                                      git commit -m "chore: update notification image tag to %IMAGE_TAG%"
                                       git remote set-url origin "https://%GIT_USERNAME%:%GIT_PASSWORD%@github.com/ErumPay/erumpay-infra.git"
                                       git push origin "HEAD:%INFRA_BRANCH%"
                                     )
